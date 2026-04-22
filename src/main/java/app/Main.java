@@ -2,37 +2,33 @@ package app;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.RowConstraints;
-import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
+import javafx.scene.image.Image;
+import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import vue.VueAccueil;
 
-    public class Main extends Application {
-        public static void main(String[] args) {
-            launch(args);
-        }
+import java.io.FileNotFoundException;
 
-        @Override
-        public void start(Stage stage) {
-            GridPane root = new GridPane();
-            for (int i = 0; i < 5; i++) {
-                root.getColumnConstraints().add(new ColumnConstraints(80));
-                root.getRowConstraints().add(new RowConstraints(80));
-                // 30 = espacement des cases
-            }
-            for (int i = 0; i < 8; i++) {
-                for (int j = 0; j < 8; j++) {
-                    // fait un plateau 8/8
-                    if ((i+j)%2 == 0)
-                        root.add(new Rectangle(80, 80, Color.BLUE), i, j);
-                }
-            }
-            Scene scene = new Scene(root, 1000, 700);
-            stage.setScene(scene);
-            stage.show();
-        }
+
+public class Main extends Application {
+    public static Stage stageApp ;
+    public static VBox vbox;
+    @Override
+    public void start(Stage stage) throws FileNotFoundException {
+        stageApp = stage;
+        Pane pane = new Pane();
+        vbox = new VBox();
+        //vbox.setSpacing(12);
+        vbox.getChildren().add(pane);
+        VueAccueil scene1 = new VueAccueil(vbox);
+
+
+        stage.getIcons().add(new Image("file:src/main/resources/images/icon.svg.png"));
+        stageApp.setScene(scene1);
+        stageApp.show();
     }
+
+    public static VBox getVBox(){
+        return vbox;
+    }
+}
