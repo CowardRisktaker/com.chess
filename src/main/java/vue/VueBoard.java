@@ -96,28 +96,27 @@ public class VueBoard extends Pane {
                     flag = false;
                 }
                 else {
-                 from = history.removeLast();
-
-                int oldX = from.getX();
-                int oldY = from.getY();
-                flag = false;
-                board.getPlateau()[oldX][oldY] = null;
-                removePieceViewAt(oldX, oldY);
-                board.getPlateau()[xs][ys] = null;
-                removePieceViewAt(xs, ys);
-                board.getPlateau()[xs][ys] = pi;
-                pi.setP(new Position(xs, ys));
-                FileInputStream img;
-                try {
-                    img = new FileInputStream("src/main/resources/images/" + pi.getType() + pi.getCouleur() + ".png");
-                } catch (FileNotFoundException ex) {
-                    throw new RuntimeException(ex);
-                }
-                Image pic1 = new Image(img);
-                ImageView fimg = new ImageView(pic1);
-                fimg.setFitWidth(70);
-                fimg.setFitHeight(70);
-                root.add(fimg, xs, ys);
+                    from = history.removeLast();
+                    int oldX = from.getX();
+                    int oldY = from.getY();
+                    flag = false;
+                    board.getPlateau()[oldX][oldY] = null;
+                    removePieceViewAt(oldX, oldY);
+                    board.getPlateau()[xs][ys] = null;
+                    removePieceViewAt(xs, ys);
+                    board.getPlateau()[xs][ys] = pi;
+                    pi.setP(new Position(xs, ys));
+                    FileInputStream img;
+                    try {
+                        img = new FileInputStream("src/main/resources/images/" + pi.getType() + pi.getCouleur() + ".png");
+                    } catch (FileNotFoundException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    Image pic1 = new Image(img);
+                    ImageView fimg = new ImageView(pic1);
+                    fimg.setFitWidth(70);
+                    fimg.setFitHeight(70);
+                    root.add(fimg, xs, ys);
                 }
             }
         });

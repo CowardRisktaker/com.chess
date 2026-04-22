@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>ChessEngine — Maquettes</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #1e1e1e;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  color: #fff;
+  min-height: 100vh;
+}
+
+/* ── Toolbar ──────────────────────────────────────────────── */
+.toolbar {
+  height: 48px;
+  background: #2c2c2c;
+  border-bottom: 1px solid #3a3a3a;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 6px;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 200;
+}
+.toolbar-logo { font-size: 13px; font-weight: 700; color: #a78bfa; margin-right: 16px; }
+.tab {
+  height: 30px; padding: 0 14px; border-radius: 6px;
+  font-size: 12px; color: #aaa; cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+  transition: all 0.15s; border: none; background: transparent;
+}
+.tab:hover { background: #3a3a3a; color: #fff; }
+.tab.active { background: #3d3d6a; color: #c4b5fd; border: 1px solid #5a5a9a; }
+.tab-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.dot-green  { background: #4ade80; }
+.dot-orange { background: #fb923c; }
+.toolbar-right { margin-left: auto; font-size: 11px; color: #444; }
+
+/* ── Canvas ───────────────────────────────────────────────── */
+.canvas { padding-top: 48px; min-height: 100vh; overflow: auto; }
+.canvas-inner { padding: 60px 80px; display: none; }
+.canvas-inner.active { display: block; }
+.section-title {
+  font-size: 11px; color: #555; text-transform: uppercase;
+  letter-spacing: 2px; margin-bottom: 36px; padding-bottom: 10px;
+  border-bottom: 1px solid #2a2a2a;
+}
+.frames-row { display: flex; gap: 80px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 80px; }
+
+/* ── Frame label ──────────────────────────────────────────── */
+.figma-frame { display: inline-block; position: relative; }
+.frame-label {
+  font-size: 11px; color: #888; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 8px;
+}
+.frame-name { color: #ccc; font-weight: 500; }
+.frame-dim  { color: #444; }
+.chip {
+  font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 500;
+}
+.chip-done    { background: rgba(74,222,128,0.12); color: #4ade80; border: 1px solid rgba(74,222,128,0.25); }
+.chip-todo    { background: rgba(251,146,60,0.12);  color: #fb923c; border: 1px solid rgba(251,146,60,0.25); }
+.chip-partial { background: rgba(250,204,21,0.10);  color: #facc15; border: 1px solid rgba(250,204,21,0.25); }
+.frame-note {
+  margin-top: 10px; font-size: 11px; color: #555; line-height: 1.6;
+}
+.frame-note code { color: #a78bfa; }
+.frame-note strong { color: #777; }
+
+/* ── Callout ──────────────────────────────────────────────── */
+.callout {
+  position: absolute; background: #a78bfa; color: #1a1a1a;
+  font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px;
+  white-space: nowrap; pointer-events: none; z-index: 10; line-height: 1.5;
+}
+.callout.warn { background: #facc15; color: #1a1a1a; }
+
+/* ══════════════════════════════════════════════════════════════
+   VUE CONNEXION  (fond sombre, à créer)
+══════════════════════════════════════════════════════════════ */
+.vue-connexion {
+  width: 580px; height: 440px;
+  background: #1a1a2e;
+  border: 1px solid #3a3a3a;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.login-box { width: 290px; }
+.login-logo  { text-align: center; font-size: 36px; margin-bottom: 8px; }
+.login-title { text-align: center; font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.login-sub   { text-align: center; font-size: 10px; color: #444; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 28px; }
+.lbl  { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 5px; }
+.inp  {
+  width: 100%; background: #0d0d20; border: 1px solid #2e2e5e; border-radius: 5px;
+  padding: 10px 12px; color: #e0e0e0; font-size: 13px; margin-bottom: 14px;
+  font-family: inherit; outline: none;
+}
+.inp.pwd { letter-spacing: 4px; }
+.btn-primary-dark {
+  width: 100%; background: linear-gradient(135deg,#3a3aaa,#5c5cff);
+  border: none; border-radius: 5px; padding: 12px;
+  color: #fff; font-size: 13px; font-weight: 700; cursor: pointer;
+  font-family: inherit; margin-top: 2px;
+}
+.err-label { font-size: 11px; color: #ff8080; text-align: center; margin-top: 10px; height: 16px; }
+
+/* ══════════════════════════════════════════════════════════════
+   VUE ACCUEIL  (fond blanc JavaFX, partielle existante)
+══════════════════════════════════════════════════════════════ */
+.vue-accueil {
+  width: 580px; height: 440px;
+  background: #fff;
+  border: 1px solid #3a3a3a;
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column;
+}
+/* Barre de titre fictive (JavaFX window) */
+.jfx-titlebar {
+  height: 28px; background: #e8e8e8; border-bottom: 1px solid #ccc;
+  display: flex; align-items: center; padding: 0 10px; gap: 6px; flex-shrink: 0;
+}
+.jfx-dot { width: 10px; height: 10px; border-radius: 50%; }
+.jfx-body { flex: 1; padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
+.jfx-btn {
+  display: inline-block; background: linear-gradient(to bottom,#f5f5f5,#e2e2e2);
+  border: 1px solid #aaa; border-radius: 3px; padding: 5px 16px;
+  font-size: 13px; color: #222; cursor: pointer; font-family: inherit;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.12); align-self: flex-start;
+}
+.jfx-btn.disabled { opacity: 0.4; cursor: default; }
+.jfx-btn.full { align-self: stretch; text-align: center; }
+.jfx-label { font-size: 13px; color: #333; margin-bottom: 6px; }
+.jfx-sep { height: 1px; background: #e0e0e0; margin: 6px 0; }
+/* version cible (thème sombre) */
+.accueil-dark {
+  width: 580px; height: 440px;
+  background: #1a1a2e; border: 1px solid #3a3a3a;
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.dark-topbar {
+  background: #12122a; border-bottom: 1px solid #2a2a4a;
+  padding: 10px 18px; display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.dark-logo { font-size: 14px; font-weight: 700; color: #7c7cff; }
+.dark-user { font-size: 12px; color: #666; }
+.dark-body { flex: 1; padding: 30px 36px; display: flex; flex-direction: column; gap: 12px; justify-content: center; }
+.dark-greeting { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+.dark-btn {
+  width: 100%; padding: 14px 18px; border-radius: 8px; cursor: pointer;
+  font-size: 14px; font-weight: 600; border: 1px solid #2e2e5e;
+  display: flex; align-items: center; gap: 12px; font-family: inherit;
+  transition: background 0.15s;
+}
+.dark-btn.primary { background: #1e3a1e; border-color: #3a7a3a; color: #4ade80; }
+.dark-btn.secondary { background: #1e1e40; color: #ccc; }
+.dark-btn.secondary.disabled { opacity: 0.35; cursor: default; }
+.dark-btn.danger { background: transparent; border-color: #3a1a1a; color: #ff8080; }
+
+/* ══════════════════════════════════════════════════════════════
+   VUE GAME CONFIG
+══════════════════════════════════════════════════════════════ */
+.vue-game {
+  width: 500px; height: 400px;
+  background: #1a1a2e; border: 1px solid #3a3a3a;
+  display: flex; flex-direction: column; position: relative; overflow: hidden;
+}
+.game-topbar {
+  background: #12122a; border-bottom: 1px solid #2a2a4a;
+  padding: 9px 16px; display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+}
+.back-btn { font-size: 12px; color: #666; cursor: pointer; }
+.game-topbar-title { font-size: 13px; font-weight: 600; color: #ccc; }
+.game-body { flex: 1; padding: 24px 28px; display: flex; flex-direction: column; gap: 0; }
+.game-section { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+.mode-row { display: flex; gap: 10px; margin-bottom: 22px; }
+.mode-card {
+  flex: 1; border: 2px solid #2e2e5e; border-radius: 8px; padding: 14px 10px;
+  text-align: center; cursor: pointer; background: #0d0d20;
+}
+.mode-card.sel { border-color: #5c5cff; background: rgba(92,92,255,0.08); }
+.mode-icon  { font-size: 22px; margin-bottom: 6px; }
+.mode-label { font-size: 12px; font-weight: 600; color: #ccc; }
+.mode-sub   { font-size: 10px; color: #555; margin-top: 3px; }
+.mode-card.sel .mode-label { color: #a78bfa; }
+.btn-launch {
+  width: 100%; padding: 13px; background: #5c5cff; border: none;
+  border-radius: 7px; color: #fff; font-size: 14px; font-weight: 700;
+  cursor: pointer; font-family: inherit; margin-top: auto;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   VUE BOARD  (plateau fidèle au code existant)
+══════════════════════════════════════════════════════════════ */
+/* Version actuelle */
+.vue-board-current {
+  width: 620px; height: 520px;
+  background: #fff; border: 1px solid #3a3a3a;
+  position: relative; overflow: hidden;
+}
+/* Rectangle brun (750×750 → scale 0.55) */
+.brown-rect {
+  position: absolute;
+  left: 38px; top: 38px;
+  width: 412px; height: 412px;
+  background: #A47449;
+}
+/* GridPane (relocate 120,120 → scale 0.55 = 66,66) */
+.board-grid {
+  position: absolute;
+  left: 66px; top: 66px;
+  display: grid;
+  grid-template-columns: repeat(8, 44px);
+  grid-template-rows: repeat(8, 44px);
+  border: 1px solid #000;
+}
+.cell {
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; position: relative;
+}
+.impair { background: #69923e; }
+.pair   { background: #ffffff; }
+.cell.sel   { background: #f6f669 !important; }
+.cell.last  { background: rgba(205,210,100,0.75) !important; }
+.cell.possible::after {
+  content: ''; position: absolute;
+  width: 36%; height: 36%; border-radius: 50%;
+  background: rgba(0,0,0,0.22);
+}
+.jouer-btn {
+  position: absolute; left: 6px; top: 6px;
+  padding: 4px 14px; background: linear-gradient(to bottom,#f5f5f5,#e2e2e2);
+  border: 1px solid #aaa; border-radius: 3px; font-size: 13px; color: #222;
+  font-family: inherit; box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+}
+/* Version cible améliorée */
+.vue-board-target {
+  width: 820px; height: 530px;
+  background: #1a1a2e; border: 1px solid #3a3a3a;
+  display: flex; flex-direction: column; position: relative; overflow: hidden;
+}
+.board-topbar {
+  background: #12122a; border-bottom: 1px solid #2a2a4a;
+  padding: 8px 16px; display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0; height: 36px;
+}
+.board-logo { font-size: 13px; font-weight: 700; color: #7c7cff; }
+.board-actions { display: flex; gap: 8px; }
+.board-btn {
+  padding: 4px 12px; font-size: 11px; border: 1px solid #333;
+  border-radius: 4px; color: #888; background: transparent; cursor: pointer; font-family: inherit;
+}
+.board-btn.save { border-color: #3a7a3a; color: #4ade80; }
+.board-btn.quit { border-color: #7a3a3a; color: #ff8080; }
+.board-body { flex: 1; display: flex; overflow: hidden; }
+.board-left { padding: 10px 12px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.player-bar {
+  width: 386px; background: #12122a; border-radius: 6px;
+  display: flex; align-items: center; gap: 10px; padding: 7px 12px;
+  border: 1px solid transparent;
+}
+.player-bar.active { border-color: #4ade80; }
+.player-bar.inactive { opacity: 0.55; }
+.pname { font-size: 12px; font-weight: 600; color: #e0e0e0; }
+.pelo  { font-size: 10px; color: #444; }
+.chrono {
+  margin-left: auto; font-family: 'Consolas', monospace;
+  font-size: 16px; font-weight: 700; letter-spacing: 1px;
+  padding: 3px 10px; border-radius: 4px;
+}
+.chrono.on  { color: #4ade80; background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.2); }
+.chrono.off { color: #333; }
+.coords-h {
+  display: grid; grid-template-columns: repeat(8, 44px);
+  width: 352px; padding-left: 16px;
+}
+.coord-h { font-size: 9px; color: #444; text-align: center; }
+.board-grid-row { display: flex; align-items: center; gap: 4px; }
+.coords-v { display: flex; flex-direction: column; }
+.coord-v { font-size: 9px; color: #444; width: 12px; text-align: right; height: 44px; line-height: 44px; }
+.board-right {
+  flex: 1; border-left: 1px solid #2a2a4a; padding: 14px 16px;
+  display: flex; flex-direction: column; overflow: hidden; min-width: 0;
+}
+.sidebar-title { font-size: 10px; color: #444; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+.moves { font-family: 'Consolas', monospace; font-size: 12px; color: #ccc; line-height: 1.9; }
+.mn { color: #333; display: inline-block; width: 20px; }
+.mw { display: inline-block; width: 58px; padding: 0 2px; border-radius: 2px; }
+.mb { display: inline-block; width: 58px; padding: 0 2px; border-radius: 2px; }
+.mw.curr { background: rgba(92,92,255,0.3); color: #fff; }
+.side-sep { height: 1px; background: #1e1e38; margin: 12px 0; }
+.turn-box { font-size: 12px; color: #666; background: #0d0d20; border-radius: 5px; padding: 8px 10px; }
+.legend { margin-top: auto; }
+.leg-item { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #444; margin-bottom: 5px; }
+.leg-sq { width: 13px; height: 13px; border-radius: 2px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<!-- ══ TOOLBAR ══════════════════════════════════════════════════ -->
+<div class="toolbar">
+  <div class="toolbar-logo">◆ ChessEngine</div>
+  <button class="tab active" onclick="show('connexion',this)">
+    <span class="tab-dot dot-orange"></span>V01 · Connexion
+  </button>
+  <button class="tab" onclick="show('accueil',this)">
+    <span class="tab-dot dot-orange"></span>V02 · Accueil
+  </button>
+  <button class="tab" onclick="show('game',this)">
+    <span class="tab-dot dot-orange"></span>V03 · Config partie
+  </button>
+  <button class="tab" onclick="show('board',this)">
+    <span class="tab-dot dot-green"></span>V04 · Plateau
+  </button>
+  <div class="toolbar-right">ChessEngine · Maquettes v2.0 · 2026-04-15</div>
+</div>
+
+<div class="canvas">
+
+<!-- ══ V01 — CONNEXION ══════════════════════════════════════════ -->
+<div class="canvas-inner active" id="page-connexion">
+  <div class="section-title">V01 — VueConnexion · À implémenter · classe vide actuellement</div>
+  <div class="frames-row">
+
+    <div class="figma-frame">
+      <div class="frame-label">
+        <span class="frame-name">VueConnexion.fxml</span>
+        <span class="frame-dim">580 × 440 px</span>
+        <span class="chip chip-todo">À implémenter</span>
+      </div>
+      <div style="position:relative">
+        <div class="vue-connexion">
+          <div class="login-box">
+            <div class="login-logo">♟</div>
+            <div class="login-title">ChessEngine</div>
+            <div class="login-sub">Application d'échecs</div>
+
+            <label class="lbl">Identifiant</label>
+            <input class="inp" type="text" value="joueur1" readonly>
+
+            <label class="lbl">Mot de passe</label>
+            <input class="inp pwd" type="text" value="••••••••" readonly>
+
+            <button class="btn-primary-dark">SE CONNECTER</button>
+            <div class="err-label">Identifiant ou mot de passe incorrect.</div>
+          </div>
+
+          <div class="callout" style="top:8px;left:50%;transform:translateX(-50%)">
+            fx:controller="controller.ControllerConnexion"
+          </div>
+          <div class="callout" style="right:10px;top:200px">
+            fx:id="tfLogin"
+          </div>
+          <div class="callout" style="right:10px;top:260px">
+            fx:id="pfMotDePasse"
+          </div>
+          <div class="callout" style="right:10px;top:318px">
+            onAction="#handleConnexion"
+          </div>
+          <div class="callout" style="right:10px;bottom:26px">
+            fx:id="lblErreur" · visible="false"
+          </div>
+        </div>
+        <div class="frame-note" style="max-width:580px">
+          <strong>Flux :</strong> handleConnexion() → <code>DAOUtilisateur.findByLogin()</code> → <code>BCrypt.checkpw()</code> → charger VueAccueil.<br>
+          Pas d'inscription. Les comptes sont insérés manuellement en BDD.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ V02 — ACCUEIL ════════════════════════════════════════════ -->
+<div class="canvas-inner" id="page-accueil">
+  <div class="section-title">V02 — VueAccueil · Partielle (bouton Jouer existant) · À enrichir</div>
+  <div class="frames-row">
+
+    <!-- État actuel -->
+    <div class="figma-frame">
+      <div class="frame-label">
+        <span class="frame-name">État actuel</span>
+        <span class="frame-dim">580 × 440 px</span>
+        <span class="chip chip-partial">Partielle</span>
+      </div>
+      <div style="position:relative">
+        <div class="vue-accueil">
+          <div class="jfx-titlebar">
+            <div class="jfx-dot" style="background:#ff5f57"></div>
+            <div class="jfx-dot" style="background:#febc2e"></div>
+            <div class="jfx-dot" style="background:#28c840"></div>
+          </div>
+          <div class="jfx-body">
+            <button class="jfx-btn">Jouer</button>
+          </div>
+          <div class="callout warn" style="left:10px;top:50px">
+            VBox blanc · un seul bouton "Jouer" · aucun style
+          </div>
+        </div>
+        <div class="frame-note"><strong>Code actuel :</strong> <code>vbox.getChildren().add(boutonJouer)</code> — fond blanc par défaut JavaFX.</div>
+      </div>
+    </div>
+
+    <!-- Cible -->
+    <div class="figma-frame">
+      <div class="frame-label">
+        <span class="frame-name">Cible</span>
+        <span class="frame-dim">580 × 440 px</span>
+        <span class="chip chip-todo">À faire</span>
+      </div>
+      <div style="position:relative">
+        <div class="accueil-dark">
+          <div class="dark-topbar">
+            <div class="dark-logo">♟ ChessEngine</div>
+            <div class="dark-user">joueur1</div>
+          </div>
+          <div class="dark-body">
+            <div class="dark-greeting">Bienvenue, joueur1</div>
+            <button class="dark-btn primary">⚔️&nbsp; Nouvelle partie</button>
+            <button class="dark-btn secondary">↩️&nbsp; Reprendre la partie</button>
+            <button class="dark-btn danger">✕&nbsp; Quitter</button>
+          </div>
+          <div class="callout" style="right:10px;top:44px">Session.getUtilisateurConnecte().getLogin()</div>
+          <div class="callout" style="right:10px;bottom:110px">setDisable(true) si aucune partie sauvegardée</div>
+        </div>
+        <div class="frame-note"><strong>Delta :</strong> afficher le login depuis <code>Session</code>, trois boutons, "Reprendre" grisé si pas de partie <code>sauvegardee</code> en BDD.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ V03 — CONFIG PARTIE ══════════════════════════════════════ -->
+<div class="canvas-inner" id="page-game">
+  <div class="section-title">V03 — VueGame · À implémenter · classe vide actuellement</div>
+  <div class="frames-row">
+
+    <div class="figma-frame">
+      <div class="frame-label">
+        <span class="frame-name">VueGame</span>
+        <span class="frame-dim">500 × 400 px</span>
+        <span class="chip chip-todo">À implémenter</span>
+      </div>
+      <div style="position:relative">
+        <div class="vue-game">
+          <div class="game-topbar">
+            <span class="back-btn">← Retour</span>
+            <span class="game-topbar-title">Nouvelle partie</span>
+          </div>
+          <div class="game-body">
+            <div class="game-section">Mode de jeu</div>
+            <div class="mode-row">
+              <div class="mode-card sel">
+                <div class="mode-icon">🧑‍🤝‍🧑</div>
+                <div class="mode-label">Joueur vs Joueur</div>
+                <div class="mode-sub">Même machine</div>
+              </div>
+              <div class="mode-card">
+                <div class="mode-icon">🤖</div>
+                <div class="mode-label">Joueur vs IA</div>
+                <div class="mode-sub">Coup aléatoire</div>
+              </div>
+            </div>
+            <button class="btn-launch">⚔ LANCER LA PARTIE</button>
+          </div>
+          <div class="callout" style="right:10px;top:44px">ControllerGame.handleLancer()</div>
+          <div class="callout" style="right:10px;bottom:50px">INSERT INTO partie → new VueBoard(new Board())</div>
+        </div>
+        <div class="frame-note"><strong>Flux :</strong> Lancer → <code>DAOPartie.creerPartie(mode)</code> → charger VueBoard avec le Board initialisé.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ V04 — PLATEAU ════════════════════════════════════════════ -->
+<div class="canvas-inner" id="page-board">
+  <div class="section-title">V04 — VueBoard · Existante (déplacement visuel) · À enrichir (règles + sauvegarde)</div>
+  <div class="frames-row">
+
+    <!-- État actuel -->
+    <div class="figma-frame">
+      <div class="frame-label">
+        <span class="frame-name">État actuel</span>
+        <span class="frame-dim">620 × 520 px</span>
+        <span class="chip chip-partial">Partielle</span>
+      </div>
+      <div style="position:relative">
+        <div class="vue-board-current">
+          <div class="jouer-btn">Jouer</div>
+          <!-- Rectangle brun -->
+          <div class="brown-rect"></div>
+          <!-- Plateau -->
+          <div class="board-grid" id="board-current"></div>
+          <div class="callout warn" style="right:8px;top:40px">Fond blanc · aucune règle · aucune sauvegarde</div>
+          <div class="callout" style="right:8px;top:120px">#A47449 · relocate(70,70)</div>
+          <div class="callout" style="right:8px;top:180px">.impair=#69923e · .pair=#fff<br>relocate(120,120) · 80px/case</div>
+        </div>
+        <div class="frame-note"><strong>Code actuel :</strong> déplacement par double-clic sans validation. Pas de sauvegarde, pas de règles, logique dans la vue (violation MVC).</div>
+      </div>
+    </div>
+
+    <!-- Cible -->
+    <div class="figma-frame">
+      <div class="frame-label">
+        <span class="frame-name">Cible</span>
+        <span class="frame-dim">820 × 530 px</span>
+        <span class="chip chip-todo">À enrichir</span>
+      </div>
+      <div style="position:relative">
+        <div class="vue-board-target">
+          <div class="board-topbar">
+            <div class="board-logo">♟ ChessEngine</div>
+            <div class="board-actions">
+              <button class="board-btn save">💾 Sauvegarder</button>
+              <button class="board-btn quit">Abandonner</button>
+            </div>
+          </div>
+          <div class="board-body">
+            <div class="board-left">
+              <!-- Joueur noir -->
+              <div class="player-bar inactive">
+                <div>
+                  <div class="pname">joueur2</div>
+                  <div class="pelo">Noirs</div>
+                </div>
+                <div class="chrono off">09:15</div>
+              </div>
+              <!-- Coords colonnes -->
+              <div class="coords-h">
+                <div class="coord-h">a</div><div class="coord-h">b</div>
+                <div class="coord-h">c</div><div class="coord-h">d</div>
+                <div class="coord-h">e</div><div class="coord-h">f</div>
+                <div class="coord-h">g</div><div class="coord-h">h</div>
+              </div>
+              <!-- Plateau + coords rangées -->
+              <div class="board-grid-row">
+                <div class="coords-v">
+                  <div class="coord-v">8</div><div class="coord-v">7</div>
+                  <div class="coord-v">6</div><div class="coord-v">5</div>
+                  <div class="coord-v">4</div><div class="coord-v">3</div>
+                  <div class="coord-v">2</div><div class="coord-v">1</div>
+                </div>
+                <div class="board-grid" id="board-target" style="border:2px solid #5c3d1e; border-radius:2px;"></div>
+              </div>
+              <!-- Joueur blanc -->
+              <div class="player-bar active">
+                <div>
+                  <div class="pname">joueur1 <span style="color:#4ade80;font-size:10px">— À jouer</span></div>
+                  <div class="pelo">Blancs</div>
+                </div>
+                <div class="chrono on">05:42</div>
+              </div>
+            </div>
+            <!-- Panneau droit -->
+            <div class="board-right">
+              <div class="sidebar-title">Coups joués</div>
+              <div class="moves">
+                <div><span class="mn">1.</span><span class="mw">e4</span><span class="mb">e5</span></div>
+                <div><span class="mn">2.</span><span class="mw">Cf3</span><span class="mb">Cc6</span></div>
+                <div><span class="mn">3.</span><span class="mw curr">Fb5</span><span class="mb" style="color:#333">...</span></div>
+              </div>
+              <div class="side-sep"></div>
+              <div class="turn-box">Tour des <strong style="color:#fff">Noirs</strong></div>
+              <div class="side-sep"></div>
+              <div class="legend">
+                <div class="sidebar-title">Légende</div>
+                <div class="leg-item"><div class="leg-sq" style="background:#f6f669"></div>Sélectionnée</div>
+                <div class="leg-item"><div class="leg-sq" style="background:rgba(0,0,0,0.22);border-radius:50%"></div>Coup possible</div>
+                <div class="leg-item"><div class="leg-sq" style="background:rgba(205,210,100,0.7)"></div>Dernier coup</div>
+                <div class="leg-item"><div class="leg-sq" style="background:rgba(255,60,60,0.45)"></div>Roi en échec</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="frame-note" style="max-width:820px">
+          <strong>Delta :</strong> mêmes couleurs de cases (<code>#69923e</code> / <code>#fff</code>). Ajouts : <code>mouvementsValides()</code>, surbrillances, barres joueurs, notation des coups, bouton Sauvegarder (<code>UPDATE statut='sauvegardee'</code>). La logique migre de VueBoard vers ControllerBoard.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</div><!-- /canvas -->
+
+<script>
+/* Navigation */
+function show(id, btn) {
+  document.querySelectorAll('.canvas-inner').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+/* Plateaux */
+const PIECES = [
+  ['♜','♞','♝','♛','♚','♝','♞','♜'],
+  ['♟','♟','♟','♟','♟','♟','♟','♟'],
+  ['','','','','','','',''],
+  ['','','','','','','',''],
+  ['','','','','♙','','',''],
+  ['','','','','','♘','',''],
+  ['♙','♙','♙','♙','','♙','♙','♙'],
+  ['♖','♘','♗','♕','♔','♗','','♖'],
+];
+const SEL  = [4,4];
+const POSS = [[3,4],[3,3],[2,4]];
+const LAST = [[6,4],[4,4]];
+
+function buildBoard(id, size) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      const cell = document.createElement('div');
+      const light = (r + c) % 2 === 0;
+      cell.className = 'cell ' + (light ? 'pair' : 'impair');
+      cell.style.width  = size + 'px';
+      cell.style.height = size + 'px';
+      const p = PIECES[r][c];
+      if (p) {
+        cell.textContent = p;
+        cell.style.fontSize = Math.round(size * 0.54) + 'px';
+      }
+      if (r===SEL[0] && c===SEL[1]) cell.classList.add('sel');
+      else if (POSS.some(x=>x[0]===r&&x[1]===c)) cell.classList.add('possible');
+      else if (LAST.some(x=>x[0]===r&&x[1]===c)) cell.classList.add('last');
+      el.appendChild(cell);
+    }
+  }
+}
+buildBoard('board-current', 44);
+buildBoard('board-target', 44);
+</script>
+</body>
+</html>
