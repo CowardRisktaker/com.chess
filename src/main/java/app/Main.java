@@ -1,5 +1,6 @@
 package app;
 
+import DAO.DAOAcces;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -9,12 +10,15 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import vue.VueAccueil;
+import vue.VueConnexion;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.sql.PreparedStatement;
+import java.util.Objects;
 
 
 public class Main extends Application {
@@ -26,28 +30,15 @@ public class Main extends Application {
     }
 
     @Override
-    public void start(Stage stage) throws Exception {
+   public void start(Stage stage) throws Exception {
+        VueConnexion root = new VueConnexion();
         stageApp = stage;
-
-        Parent root = FXMLLoader.load(getClass().getResource("/VueConnexion.fxml"));
-        Scene scene = new Scene(root);
-
-        stage.setScene(scene);
-        stage.setTitle("ChessEngine");
+        stage.setScene(root.connexion());
+        stage.setTitle("com.chess");
         stage.show();
-    }
-    /* @Override
-    public void start(Stage stage) {
-        stageApp = stage;
-        Pane pane = new Pane();
-        vbox = new VBox();
-        //vbox.setSpacing(12);
-        vbox.getChildren().add(pane);
-        VueAccueil scene1 = new VueAccueil(vbox);
-        stageApp.setScene(scene1);
-        stageApp.show();
-    }
-*/
+
+   }
+
     public static VBox getVBox(){
         return vbox;
     }

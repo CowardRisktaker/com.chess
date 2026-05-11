@@ -1,10 +1,13 @@
 package DAO;
 
+import io.github.cdimascio.dotenv.Dotenv;
+import model.Utilisateur;
+import org.mindrot.jbcrypt.BCrypt;
+
 import java.sql.*;
 
     public class DAOAcces {
         private Connection conn;
-        private Statement statement;
         private String driver;
         private String dbName;
         private String login;
@@ -13,39 +16,24 @@ import java.sql.*;
         /**
          * constructeur de connexion
          *
-         * @param 	driver le driver JDBC : pilote pour faire marcher java avec la bdd
-         * 			dbName : Acces
-         * 			login: acces
-         * 			mdp : 1234
          *
          **/
 
-        public DAOAcces(String driver, String dbName, String login, String mdp) {
-            this.driver = driver;
-            this.dbName= dbName;
-            this.login= login;
-            this.mdp = mdp;
-            String strUrl = "jdbc:mysql://localhost:3306/" +  dbName + "?autoReconnect=true&useSSL=false&serverTimezone=UTC";
+        public DAOAcces() throws SQLException {
+            Dotenv dotenv = Dotenv.load();
+            this.dbName = dotenv.get("DB_NAME");
+            this.login = dotenv.get("DB_LOGIN");
+            this.mdp = dotenv.get("DB_PASSWORD");
+            String port = dotenv.get("DB_PORT");
 
-            try {
-
-                Class.forName(driver);
-                this.conn = DriverManager.getConnection(strUrl, login, mdp);
-                // autorise la modification de la base de données par resultset
-                this.statement = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,ResultSet.CONCUR_UPDATABLE);
-            }
-            catch(ClassNotFoundException e) {
-                System.out.println("Driver non charg� !!");
-                e.printStackTrace();
-            }
-            catch(SQLException e) {
-                System.out.println("Probl�me SQL !!" + e.getMessage());
-                e.printStackTrace();
-            }
+            String strUrl = "jdbc:mysql://localhost:" + port + "/" + dbName
+                    + "?autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+            this.conn = DriverManager.getConnection(strUrl, login, mdp);
         }
 
 
         public Connection getConn() {
+
             return this.conn;
         }
 
@@ -54,16 +42,36 @@ import java.sql.*;
             this.conn = conn;
         }
 
+        public Utilisateur checkLogin(String login) throws SQLException {
+            String sql = "SELECT * FROM `com.chess`.utilisateur WHERE login = ?";
 
-        public Statement getStatement() {
-            return this.statement;
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, login);
+
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        return new Utilisateur(rs.getInt("id_utilisateur"), rs.getString("login")) ;
+                    }
+                }
+            }
+
+            return null;
         }
 
-
-        public void setStatement(Statement statement) {
-            this.statement = statement;
+        public boolean checkPass(String login, String plainPassword) throws SQLException {
+            String sql = "SELECT mot_de_passe FROM `com.chess`.utilisateur WHERE login = ?";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, login);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        System.out.println(BCrypt.hashpw(plainPassword, BCrypt.gensalt()));
+                        String hashFromDB = rs.getString("mot_de_passe");
+                        return BCrypt.checkpw(plainPassword, hashFromDB);
+                    }
+                }
+            }
+            return false;
         }
-
 
         public String getDriver() {
             return this.driver;
@@ -105,11 +113,11 @@ import java.sql.*;
         }
 
         /**
-         * destructeur de connexion
+         * Destructeur de connexion
          *
          *
          **/
-        public void closeConnection() {
+        public void closeConn() {
             try {
                 this.conn.close();
             } catch (SQLException e) {

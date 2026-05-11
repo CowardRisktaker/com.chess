@@ -11,6 +11,16 @@ public class Roi extends Piece {
         //sortiesPossible();
     }
 
+    @Override
+    public boolean coupLegal(int x, int y, int n) {
+
+    }
+
+    @Override
+    public boolean coupLegal(int x, int y, int scaleX, int scaleY) {
+
+    }
+
     public void sortiesPossible() {
         int x = this.getP().getX();
         int y = this.getP().getY();

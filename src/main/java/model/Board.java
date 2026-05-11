@@ -2,12 +2,11 @@ package model;
 
 
 public class Board {
-    Piece[][] plateau = new Piece[8][8];
+    private Piece[][] plateau = new Piece[8][8];
 public Board() {
     initPieces();
 }
     private void initPieces() {
-
         plateau[0][0] = new Tour(new Position(0, 0), "Noir") ;
         plateau[1][0] = new Cavalier(new Position(1, 0),"Noir");
         plateau[2][0] = new Fou(new Position(2, 0),"Noir");
@@ -35,7 +34,12 @@ public Board() {
         plateau[7][7] = new Tour(new Position(7, 7), "Blanc");
     }
 
-
+    public void deplacer(int oldX, int oldY, int x, int y) {
+        Piece piece = plateau[oldX][oldY];
+        plateau[oldX][oldY].setP(new Position(x, y));
+        plateau[x][y] = piece;
+        plateau[oldX][oldY] = null;
+    }
 
 
     public Piece[][] getPlateau() {
@@ -46,5 +50,5 @@ public Board() {
         return this.plateau[x][y];
     }
 
-    }
+}
 

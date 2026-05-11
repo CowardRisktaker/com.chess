@@ -2,9 +2,12 @@ package model;
 
 public abstract class Piece {
     Position p;
-    private final String couleur;
+    private String couleur = "";
 
-
+    public Piece() {
+        this.p = new Position(p.getX(), p.getY());
+        this.couleur = couleur ;
+    }
     public Piece(Position p, String couleur ) {
         this.p = new Position(p.getX(), p.getY());
         this.couleur = couleur ;
@@ -24,6 +27,9 @@ public abstract class Piece {
 
     public void setNull() { this.p = null; }
 
+
+    public abstract boolean coupLegal(int x, int y, int n);
+    public abstract boolean coupLegal(int x, int y, int scaleX, int scaleY);
 
     public abstract String getType() ;
 }
