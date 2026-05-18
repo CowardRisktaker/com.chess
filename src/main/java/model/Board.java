@@ -34,13 +34,17 @@ public Board() {
         plateau[7][7] = new Tour(new Position(7, 7), "Blanc");
     }
 
+
     public void deplacer(int oldX, int oldY, int x, int y) {
         Piece piece = plateau[oldX][oldY];
-        plateau[oldX][oldY].setP(new Position(x, y));
+        piece.setP(new Position(x, y));
         plateau[x][y] = piece;
         plateau[oldX][oldY] = null;
     }
 
+    public void setPlateau(Piece[][] plateau) {
+        this.plateau = plateau;
+    }
 
     public Piece[][] getPlateau() {
         return plateau;

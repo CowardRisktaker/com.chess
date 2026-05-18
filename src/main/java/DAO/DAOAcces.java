@@ -1,6 +1,7 @@
 package DAO;
 
 import io.github.cdimascio.dotenv.Dotenv;
+import model.Piece;
 import model.Utilisateur;
 import org.mindrot.jbcrypt.BCrypt;
 
@@ -50,7 +51,7 @@ import java.sql.*;
 
                 try (ResultSet rs = pstmt.executeQuery()) {
                     if (rs.next()) {
-                        return new Utilisateur(rs.getInt("id_utilisateur"), rs.getString("login")) ;
+                        return new Utilisateur(rs.getInt("id_utilisateur"), rs.getString("login"), rs.getInt("elo")) ;
                     }
                 }
             }
@@ -64,7 +65,6 @@ import java.sql.*;
                 pstmt.setString(1, login);
                 try (ResultSet rs = pstmt.executeQuery()) {
                     if (rs.next()) {
-                        System.out.println(BCrypt.hashpw(plainPassword, BCrypt.gensalt()));
                         String hashFromDB = rs.getString("mot_de_passe");
                         return BCrypt.checkpw(plainPassword, hashFromDB);
                     }

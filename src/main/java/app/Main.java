@@ -9,7 +9,9 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import model.Board;
 import vue.VueAccueil;
+import vue.VueBoard;
 import vue.VueConnexion;
 
 import java.io.FileInputStream;
@@ -22,8 +24,8 @@ import java.util.Objects;
 
 
 public class Main extends Application {
-    public static Stage stageApp ;
-    public static VBox vbox;
+    public static Stage     stageApp ;
+    public static VBox      vbox;
 
     public static void main(String[] args) {
         launch(args);
@@ -31,8 +33,10 @@ public class Main extends Application {
 
     @Override
    public void start(Stage stage) throws Exception {
+//        VueBoard board = new VueBoard(new Board());
         VueConnexion root = new VueConnexion();
         stageApp = stage;
+//        stage.setScene(board.creerScene());
         stage.setScene(root.connexion());
         stage.setTitle("com.chess");
         stage.show();

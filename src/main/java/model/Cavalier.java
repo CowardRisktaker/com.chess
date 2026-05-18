@@ -5,20 +5,19 @@ public class Cavalier extends Piece {
         super(p, couleur);
     }
 
-    @Override
-    public boolean coupLegal(int x, int y, int n) {
-        Position pos = new Position(x, y);
-        if (pos.equals(new Position(x-n, y-n )) || pos.equals(new Position(x+n, y-n )) || pos.equals(new Position(x-n, y+n)) || pos.equals(new Position(x+n, y+n))) {
-            this.setP(pos);
 
+    public boolean coupLegal(int x, int y, int scaleX, int scaleY, Position from, Piece[][] plateau) {
+        if ((scaleX == 1 && scaleY == 2) || (scaleX == 2 && scaleY == 1)) {
+            if (plateau[from.getX()][from.getY()] == plateau[x][y]) return false;
+            Piece cible = plateau[x][y];
+            if (cible == null || !cible.getCouleur().equals(this.getCouleur())) {
+                this.setP(new Position(x, y));
+                return true;
+            } else return false;
         }
+        return false;
     }
-    public boolean coupLegal(int x, int y, int scaleX, int scaleY) {
-        Position pos = new Position(x, y);
-        if (pos.equals(new Position(x-scaleX, y-scaleY )) || pos.equals(new Position(x+scaleX, y-scaleY )) || pos.equals(new Position(x-scaleX, y+scaleY)) || pos.equals(new Position(x+scaleX, y+scaleY))) {
-            this.setP(pos);
-        }
-    }
+
 
     public String getType() { return "Cavalier"; }
 }

@@ -16,7 +16,7 @@ public class ControllerConnexion {
     @FXML private Label         lblErreur;
 
     @FXML
-    private VueAccueil handleConnexion() throws Exception {
+    private void handleConnexion() throws Exception {
         String login = tfLogin.getText() ;
         String mdp = pfMotDePasse.getText();
 
@@ -26,13 +26,12 @@ public class ControllerConnexion {
 
         if (user != null && dao.checkPass(login, mdp)) {
             System.out.println("OK");
-            Main.stageApp.setScene(VueAccueil.creerScene());
+            Main.stageApp.setScene(VueAccueil.creerScene(user));
         }
         else {
             lblErreur.setText("Login ou mot de passe incorrect");
             lblErreur.setVisible(true);
         }
         dao.closeConn();
-        return null;
     }
 }

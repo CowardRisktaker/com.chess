@@ -5,13 +5,14 @@ public class Pion extends Piece {
         super(p, couleur);
     }
 
-    @Override
-    public boolean coupLegal(int x, int y, int n) {
-        return false;
-    }
-
-    @Override
-    public boolean coupLegal(int x, int y, int scaleX, int scaleY) {
+    public boolean coupLegal(int x, int y, int scaleX, int scaleY, Position from, Piece[][] plateau) {
+        if (scaleY <= 1 && scaleX == 0) {
+            Piece cible = plateau[x][y];
+            if (plateau[from.getX()][from.getY()] == plateau[x][y]) return false;
+            if (cible == null || !cible.getCouleur().equals(this.getCouleur())) { this.setP(new Position(x, y));
+                return true;
+            } return false;
+        }
         return false;
     }
 

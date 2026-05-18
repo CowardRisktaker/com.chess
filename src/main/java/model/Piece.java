@@ -1,8 +1,8 @@
 package model;
 
 public abstract class Piece {
-    Position p;
-    private String couleur = "";
+    Position        p;
+    private String  couleur;
 
     public Piece() {
         this.p = new Position(p.getX(), p.getY());
@@ -28,9 +28,16 @@ public abstract class Piece {
     public void setNull() { this.p = null; }
 
 
-    public abstract boolean coupLegal(int x, int y, int n);
-    public abstract boolean coupLegal(int x, int y, int scaleX, int scaleY);
+    public abstract boolean coupLegal(int x, int y, int scaleX, int scaleY, Position from, Piece[][] plateau);
 
     public abstract String getType() ;
+
+    @Override
+    public String toString() {
+        return "couleur= " + couleur +
+            "; type = " + getType() +
+            "; position = " + p.toString();
+    }
 }
+
 
